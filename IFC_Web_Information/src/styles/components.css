@@ -1,0 +1,45 @@
+/* components.css — komponen yang dipakai di banyak halaman */
+/* navbar */
+.navbar{background:var(--bg);color:#fff;position:sticky;top:0;z-index:100}
+.navbar .container{display:flex;align-items:center;justify-content:space-between;height:65px}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-img{height:46px;width:46px;border-radius:50%;object-fit:cover;border:2px solid var(--blue2)}
+.logo-text{display:flex;flex-direction:column;font-weight:800;font-size:15px;color:#fff;line-height:1.1;letter-spacing:.5px}
+.logo-text small{display:block;font-size:10px;font-weight:400;color:#94a3b8;letter-spacing:0;margin-top:2px}
+.nav-links{display:flex;gap:28px;font-size:14px}
+.nav-links a{color:#cbd5e1;padding:6px 0}
+.nav-links a.active,.nav-links a:hover{color:#fff;border-bottom:2px solid var(--blue2)}
+/* tombol */
+.btn{display:inline-block;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;border:1px solid transparent;cursor:pointer}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:var(--blue2)}
+.btn-outline{border-color:#475569;color:#fff;background:transparent}.btn-outline:hover{background:rgba(255,255,255,.1)}
+.btn-light{background:#fff;border-color:var(--line);color:var(--text)}
+.btn-ok{background:var(--ok);color:#fff}
+.btn-bad{background:var(--bad);color:#fff}
+.btn-sm{padding:7px 14px;font-size:13px}
+/* card, badge */
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px;margin-bottom:20px}
+.card h2{font-size:20px;margin-bottom:4px}
+.card .sub,.sub{color:var(--muted);font-size:14px;margin-bottom:18px}
+.badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600}
+.b-ok{background:#dcfce7;color:var(--ok)}.b-warn{background:#fef3c7;color:var(--warn)}.b-bad{background:#fee2e2;color:var(--bad)}
+/* form */
+label{display:block;font-size:13px;font-weight:600;margin:14px 0 6px}
+input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;background:#fff}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--blue2);border-color:transparent}
+.form-actions{display:flex;justify-content:space-between;margin-top:24px}
+.form-actions.start{justify-content:flex-start;gap:10px}
+.select-filter,.select-status{width:auto;min-width:200px;margin-bottom:16px}
+.err{color:var(--bad);font-size:13px;margin-top:12px}
+/* tabel */
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:10px;text-align:left;border-bottom:1px solid var(--line)}
+th{background:var(--soft);font-size:12px;color:var(--muted)}
+/* modal login */
+.modal{display:none;position:fixed;inset:0;background:rgba(11,15,26,.8);z-index:200;align-items:center;justify-content:center;padding:20px}
+.modal.show{display:flex}
+.login-card{position:relative;background:#fff;color:var(--text);border-radius:14px;padding:32px;width:100%;max-width:380px}
+.login-card .btn{width:100%;margin-top:18px}
+.login-card .hint{font-size:13px;color:var(--muted)}
+.close{position:absolute;top:12px;right:16px;background:none;border:0;font-size:22px;cursor:pointer}
+.card h3{margin-bottom:10px}

@@ -1,0 +1,11 @@
+/* bracket.css — Bagan turnamen (dipakai bracket.html dan admin.html) */
+.bracket{display:flex;gap:30px;overflow-x:auto;background:var(--bg);padding:24px;border-radius:12px;color:#fff;margin-bottom:20px}
+.bracket>div{display:flex;flex-direction:column;justify-content:space-around;gap:14px;min-width:170px}
+.bm{background:var(--bg2);border:1px solid #334155;border-radius:8px;padding:8px 12px;font-size:13px;color:#fff}
+.bm p{display:flex;justify-content:space-between;align-items:center;margin:4px 0}
+.bm span{color:#e2e8f0}.bm b{color:var(--blue2)}
+.bracket-label{text-align:center;color:#94a3b8;display:block;margin-top:6px;font-size:12px}
+.bm small{display:block;font-size:11px;color:#64748b}
+.bracket>div{min-width:190px}
+.grup-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+.grup-grid h4{margin:6px 0}
