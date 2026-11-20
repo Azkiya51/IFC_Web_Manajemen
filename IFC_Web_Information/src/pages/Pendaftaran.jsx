@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { registerParticipant } from '../services/apiAuth'
 import DataTable from '../components/DataTable'
 import { EVENT, rupiah } from '../data/eventInfo'
 
@@ -11,11 +12,12 @@ export default function Pendaftaran() {
   const { addTeam } = useApp()
   const navigate = useNavigate()
   const [step, setStep] = useState(0)
-  const [form, setForm] = useState({ tn: '', kp: '', pt: '', ins: '', wa: '', em: '' })
+  const [form, setForm] = useState({ tn: '', kp: '', pt: '', ins: '', wa: '', em: '', pw: '' })
   const [pls, setPls] = useState([['', ''], ['', ''], ['', ''], ['', ''], ['', '']])
-  const [files, setFiles] = useState({ 1: [], 2: [], 3: [] }) // tiap item: {name, url, img, ok}
+  const [files, setFiles] = useState({ 1: [], 2: [], 3: [] })
   const [agree, setAgree] = useState(false)
   const [errors, setErrors] = useState([])
+  const [submitting, setSubmitting] = useState(false)
 
   const setF = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
   const setPlayer = (i, j, v) => setPls(p => p.map((r, x) => (x === i ? r.map((c, y) => (y === j ? v : c)) : r)))
@@ -23,7 +25,10 @@ export default function Pendaftaran() {
 
   const onFiles = k => e => {
     const list = [...e.target.files].map(f => ({
-      name: f.name, img: f.type.startsWith('image/'), ok: f.size <= MAX_SIZE,
+      raw: f,
+      name: f.name,
+      img: f.type.startsWith('image/'),
+      ok: f.size <= MAX_SIZE,
       url: f.type.startsWith('image/') ? URL.createObjectURL(f) : '',
     }))
     setFiles(s => ({ ...s, [k]: list }))
@@ -38,6 +43,7 @@ export default function Pendaftaran() {
       if (!v('ins')) e.push('Asal sekolah wajib diisi.')
       if (!/^(\+62|62|0)8\d{7,12}$/.test(v('wa'))) e.push('Nomor WhatsApp tidak valid.')
       if (!/^\S+@\S+\.\S+$/.test(v('em'))) e.push('Format email tidak valid.')
+      if (v('pw').length < 6) e.push('Password akun minimal 6 karakter.')
     }
     if (s === 1 && (pls.length < 5 || pls.length > EVENT.tim.pemain || pls.some(p => !p[0].trim() || !/^\d{10}$/.test(p[1].trim())))) {
       e.push(`Minimal 5 dan maksimal ${EVENT.tim.pemain} pemain, dengan nama dan NISN (10 digit) terisi lengkap.`)
@@ -51,12 +57,23 @@ export default function Pendaftaran() {
     return !e.length
   }
 
-  const next = () => {
+  const next = async () => {
     if (!validate(step)) return
     if (step < 3) { setErrors([]); return setStep(step + 1) }
-    // submit
-    addTeam({ n: form.tn.trim(), i: form.ins, k: form.kp.trim(), c: pls.length, s: 'Menunggu' }, pls)
-    navigate('/status')
+    setSubmitting(true)
+    try {
+      await registerParticipant(form.em.trim(), form.pw)
+      await addTeam(
+        { n: form.tn.trim(), i: form.ins, k: form.kp.trim(), c: pls.length, s: 'Menunggu' },
+        pls,
+        files
+      )
+      navigate('/status')
+    } catch (err) {
+      setErrors([err.message || 'Gagal membuat akun pendaftaran.'])
+    } finally {
+      setSubmitting(false)
+    }
   }
   const prev = () => { setErrors([]); setStep(Math.max(0, step - 1)) }
 
@@ -100,6 +117,8 @@ export default function Pendaftaran() {
           <input value={form.wa} onChange={setF('wa')} placeholder="08xxxxxxxxxx" />
           <label>Email *</label>
           <input type="email" value={form.em} onChange={setF('em')} placeholder="nama@email.com" />
+          <label>Password Akun (untuk Login & Cek Status) *</label>
+          <input type="password" value={form.pw} onChange={setF('pw')} placeholder="Minimal 6 karakter" />
         </div>
 
         <div className={`panel ${step === 1 ? 'show' : ''}`}>
@@ -146,7 +165,9 @@ export default function Pendaftaran() {
         <div className="err">{errors.map((m, i) => <div key={i}>{m}</div>)}</div>
         <div className="form-actions">
           <button className="btn btn-light" onClick={prev}>Sebelumnya</button>
-          <button className="btn btn-primary" onClick={next}>{step === 3 ? 'Submit Pendaftaran' : 'Selanjutnya →'}</button>
+          <button className="btn btn-primary" disabled={submitting} onClick={next}>
+            {submitting ? 'Mengunggah & Menyimpan...' : step === 3 ? 'Submit Pendaftaran' : 'Selanjutnya →'}
+          </button>
         </div>
       </div>
 

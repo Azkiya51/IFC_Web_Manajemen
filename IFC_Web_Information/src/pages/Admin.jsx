@@ -1,11 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { getCurrentSession, logoutUser } from '../services/apiAuth'
 import Badge from '../components/Badge'
 import Bracket from '../components/Bracket'
 import DataTable, { skor } from '../components/DataTable'
 import { EVENT, rupiah } from '../data/eventInfo'
 
-// [label sidebar, id panel]
 const MENU = [
   ['Dashboard', 'dash'], ['Data Tim', 'tim'], ['Data Pemain', 'pem'], ['Verifikasi Pembayaran', 'ver'],
   ['Jadwal Pertandingan', 'mat'], ['Hasil Pertandingan', 'mat'], ['Bagan Turnamen', 'bag'],
@@ -13,9 +14,31 @@ const MENU = [
 ]
 
 export default function Admin() {
-  const [idx, setIdx] = useState(0) // menu sidebar yang aktif
+  const [idx, setIdx] = useState(0)
+  const [allowed, setAllowed] = useState(false)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    getCurrentSession().then(sesi => {
+      if (!sesi || sesi.role !== 'admin') {
+        navigate('/')
+      } else {
+        setAllowed(true)
+      }
+    })
+  }, [navigate])
+
+  if (!allowed) return null
+
   const panel = MENU[idx][1]
-  const pilih = i => (MENU[i][1] === 'out' ? (window.location.href = '/') : setIdx(i))
+  const pilih = async i => {
+    if (MENU[i][1] === 'out') {
+      await logoutUser()
+      navigate('/')
+    } else {
+      setIdx(i)
+    }
+  }
 
   return (
     <div className="admin">
@@ -116,7 +139,21 @@ function Verifikasi() {
           <DataTable head={['Nama', 'NISN']} rows={P.filter(p => p[2] === aktif.t.n).map(p => [p[0], p[1]])} />
           <h4>Dokumen</h4>
           <div className="row">
-            {['Foto Kartu Pelajar', 'Logo Tim', 'Bukti Pembayaran'].map(d => <div className="doc" key={d}>{d}</div>)}
+            {[
+              ['Foto Kartu Pelajar', aktif.t.doc_kartu],
+              ['Logo Tim', aktif.t.doc_logo],
+              ['Bukti Pembayaran', aktif.t.doc_bayar],
+            ].map(([label, url]) => (
+              <div className="doc" key={label}>
+                {url ? (
+                  <a href={url} target="_blank" rel="noreferrer" style={{ color: '#2563eb', textDecoration: 'underline', fontWeight: 600 }}>
+                    Lihat {label} ↗
+                  </a>
+                ) : (
+                  <span style={{ color: '#94a3b8' }}>{label} (Belum ada)</span>
+                )}
+              </div>
+            ))}
           </div>
         </>
       )}
@@ -138,7 +175,7 @@ function Pertandingan() {
 
   const tambah = () => {
     if (!f.d || !f.w || a === b) { alert('Lengkapi tanggal, waktu, dan pilih dua tim yang berbeda.'); return }
-    addMatch({ d: f.d, t: f.w, a, b, l: '1', x: 0, y: 0, s: 'Akan Datang' }) // semua di Lapangan 1
+    addMatch({ d: f.d, t: f.w, a, b, l: '1', x: 0, y: 0, s: 'Akan Datang' })
     setF({ d: '', w: '', a: '', b: '' })
   }
   const edit = k => {
