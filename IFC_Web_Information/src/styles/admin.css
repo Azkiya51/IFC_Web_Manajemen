@@ -1,0 +1,18 @@
+/* admin.css — Admin Panel (admin.html) */
+.admin{flex:1 0 auto;display:grid;grid-template-columns:240px 1fr;width:100%}
+.side{background:var(--bg2);color:#fff;padding:20px 12px}
+.side .logo{font-weight:800;font-size:22px;padding:0 12px 16px;display:block}
+.side .logo span{color:var(--blue2)}
+.side .logo small{display:block;font-size:11px;font-weight:400;color:#94a3b8}
+.side button{display:block;width:100%;text-align:left;background:none;border:0;color:#cbd5e1;padding:10px 12px;border-radius:8px;font-size:14px;cursor:pointer}
+.side button:hover{background:rgba(255,255,255,.08)}
+.side button.on{background:var(--blue);color:#fff}
+.amain{padding:28px;min-width:0}
+.ap[hidden]{display:none}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.cards .card{margin-bottom:0}
+.cards .card b{display:block;font-size:26px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;align-items:end}
+.doc{border:2px dashed var(--line);border-radius:10px;padding:30px;text-align:center;color:var(--muted);font-size:13px}
+.input-skor{width:64px;display:inline-block;padding:6px 8px}
+@media(max-width:800px){.admin{grid-template-columns:1fr}.cards{grid-template-columns:1fr 1fr}}

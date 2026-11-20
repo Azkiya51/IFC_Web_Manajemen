@@ -1,0 +1,20 @@
+/* pages.css — Jadwal, Live Score, Status */
+.live{border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:12px;text-align:center}
+.live small{display:block;color:var(--muted);margin-bottom:6px}
+.live .badge{background:#fee2e2;color:var(--bad);margin-bottom:12px}
+.live .match{margin-top:8px}
+.live .match .score{font-size:36px}
+.title-hasil,.title-klasemen{margin:24px 0 10px}
+.box{border-radius:10px;padding:16px;margin:14px 0}
+.box.ok{background:#dcfce7;color:var(--ok)}.box.warn{background:#fef3c7;color:var(--warn)}.box.bad{background:#fee2e2;color:var(--bad)}
+.box p{color:var(--text);font-size:14px;margin-top:4px}
+ol.info{margin:10px 0 18px 20px;font-size:14px}
+/* halaman Informasi */
+.info-page .tema{color:var(--blue);font-weight:600;margin-bottom:14px}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.info-grid .card{margin-bottom:0}
+.info-page h3{margin:0 0 10px}
+.info-page ul{margin:8px 0 8px 20px;font-size:14px}
+.info-page li{margin:4px 0}
+.info-page p{font-size:14px;margin:6px 0}
+.info-page .card+.card,.info-page .info-grid{margin-top:20px}
