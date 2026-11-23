@@ -1,35 +1,47 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '../supabase'
-import { INITIAL } from '../data/initialData'
 
 const Ctx = createContext(null)
 export const useApp = () => useContext(Ctx)
 
 export function AppProvider({ children }) {
   const [st, setSt] = useState({
-    T: INITIAL.T,
-    M: INITIAL.M,
-    P: INITIAL.P,
-    me: INITIAL.me,
+    T: [],
+    M: [],
+    P: [],
+    B: {},
+    me: '',
   })
 
   const fetchAll = async () => {
-    const [{ data: teams }, { data: players }, { data: matches }, { data: sessionData }] = await Promise.all([
+    const [
+      { data: teams },
+      { data: players },
+      { data: matches },
+      { data: slots },
+      { data: sessionData },
+    ] = await Promise.all([
       supabase.from('teams').select('*').order('created_at', { ascending: true }),
       supabase.from('players').select('*').order('created_at', { ascending: true }),
       supabase.from('matches').select('*').order('created_at', { ascending: true }),
+      supabase.from('bracket_slots').select('*'),
       supabase.auth.getSession(),
     ])
 
     const email = sessionData?.session?.user?.email || null
     const listT = teams || []
     const myTeam = email ? listT.find(t => t.user_email === email) : null
+    const bracketMap = {}
+    ;(slots || []).forEach(row => {
+      bracketMap[row.kode] = row
+    })
 
     setSt({
       T: listT,
       P: (players || []).map(p => [p.name, p.nisn, p.team_name]),
       M: matches || [],
-      me: myTeam ? myTeam.n : (email ? '' : INITIAL.me),
+      B: bracketMap,
+      me: myTeam ? myTeam.n : '',
     })
   }
 
@@ -70,6 +82,7 @@ export function AppProvider({ children }) {
       const payload = {
         ...team,
         r: team.r || '',
+        grup: team.grup || '',
         user_email: email,
         doc_kartu,
         doc_logo,
@@ -102,6 +115,38 @@ export function AppProvider({ children }) {
       if (target.id) {
         await supabase.from('teams').update(patch).eq('id', target.id)
       }
+    },
+
+    updateTeamGroup: async (teamId, grup) => {
+      setSt(s => ({
+        ...s,
+        T: s.T.map(t => (t.id === teamId ? { ...t, grup } : t)),
+      }))
+      if (teamId) {
+        await supabase.from('teams').update({ grup }).eq('id', teamId)
+      }
+    },
+
+    autoAssignGroups: async () => {
+      const grups = ['A', 'B', 'C', 'D']
+      const verified = st.T.filter(t => t.s === 'Terverifikasi')
+      if (!verified.length) {
+        alert('Belum ada tim berstatus Terverifikasi untuk dibagi ke grup.')
+        return
+      }
+      const updates = {}
+      verified.forEach((t, idx) => {
+        updates[t.id] = grups[idx % grups.length]
+      })
+
+      setSt(s => ({
+        ...s,
+        T: s.T.map(t => (updates[t.id] ? { ...t, grup: updates[t.id] } : t)),
+      }))
+
+      await Promise.all(
+        verified.map(t => supabase.from('teams').update({ grup: updates[t.id] }).eq('id', t.id))
+      )
     },
 
     renameTeam: async (k, baru) => {
@@ -140,7 +185,8 @@ export function AppProvider({ children }) {
     },
 
     addMatch: async m => {
-      const { data: inserted, error } = await supabase.from('matches').insert([m]).select().single()
+      const payload = { ...m, babak: m.babak || 'Grup' }
+      const { data: inserted, error } = await supabase.from('matches').insert([payload]).select().single()
       if (error) {
         alert('Gagal menambah jadwal: ' + error.message)
         return
@@ -186,6 +232,27 @@ export function AppProvider({ children }) {
         } else {
           await supabase.from('matches').update({ [f]: val }).eq('id', target.id)
         }
+      }
+    },
+
+    saveBracketSlot: async (kode, patch) => {
+      const row = {
+        kode,
+        tim_a: patch.tim_a ?? '',
+        tim_b: patch.tim_b ?? '',
+        skor_a: patch.skor_a === '' || patch.skor_a === null || patch.skor_a === undefined ? null : Number(patch.skor_a),
+        skor_b: patch.skor_b === '' || patch.skor_b === null || patch.skor_b === undefined ? null : Number(patch.skor_b),
+        updated_at: new Date().toISOString(),
+      }
+
+      setSt(s => ({
+        ...s,
+        B: { ...s.B, [kode]: row },
+      }))
+
+      const { error } = await supabase.from('bracket_slots').upsert([row], { onConflict: 'kode' })
+      if (error) {
+        alert('Gagal menyimpan bagan: ' + error.message)
       }
     },
   }

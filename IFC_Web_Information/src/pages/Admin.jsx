@@ -54,7 +54,7 @@ export default function Admin() {
         {panel === 'pem' && <DataPemain />}
         {panel === 'ver' && <Verifikasi />}
         {panel === 'mat' && <Pertandingan />}
-        {panel === 'bag' && <div className="card"><h2>Bagan Turnamen dan Klasemen</h2><Bracket /></div>}
+        {panel === 'bag' && <div className="card"><h2>Bagan Turnamen dan Klasemen</h2><Bracket isAdmin /></div>}
         {panel === 'lap' && <Laporan />}
       </div>
     </div>
@@ -85,7 +85,7 @@ function Dashboard() {
 
 function DataTim() {
   const { T, renameTeam, deleteTeam } = useApp()
-  const detail = t => alert(`Tim: ${t.n}\nInstansi: ${t.i}\nKapten: ${t.k}\nPemain: ${t.c}\nStatus: ${t.s}`)
+  const detail = t => alert(`Tim: ${t.n}\nInstansi: ${t.i}\nKapten: ${t.k}\nPemain: ${t.c}\nGrup: ${t.grup || '-'}\nStatus: ${t.s}`)
   const edit = k => {
     const v = prompt('Nama tim:', T[k].n)
     if (v && v.trim()) renameTeam(k, v.trim())
@@ -93,8 +93,8 @@ function DataTim() {
   const hapus = k => { if (confirm('Hapus tim ' + T[k].n + '?')) deleteTeam(k) }
   return (
     <div className="card"><h2>Data Tim</h2>
-      <DataTable head={['Nama Tim', 'Instansi', 'Kapten', 'Pemain', 'Status', 'Aksi']}
-        rows={T.map((t, k) => [t.n, t.i, t.k, t.c, <Badge s={t.s} />,
+      <DataTable head={['Nama Tim', 'Instansi', 'Kapten', 'Pemain', 'Grup', 'Status', 'Aksi']}
+        rows={T.map((t, k) => [t.n, t.i, t.k, t.c, t.grup || '-', <Badge s={t.s} />,
           <>
             <button className="btn btn-light btn-sm" onClick={() => detail(t)}>Detail</button>{' '}
             <button className="btn btn-primary btn-sm" onClick={() => edit(k)}>Edit</button>{' '}
@@ -169,14 +169,14 @@ function Verifikasi() {
 
 function Pertandingan() {
   const { T, M, addMatch, editMatch, deleteMatch, updateMatch } = useApp()
-  const [f, setF] = useState({ d: '', w: '', a: '', b: '' })
+  const [f, setF] = useState({ d: '', w: '', a: '', b: '', babak: 'Grup' })
   const a = f.a || T[0]?.n, b = f.b || T[0]?.n
   const set = k => e => setF(x => ({ ...x, [k]: e.target.value }))
 
   const tambah = () => {
     if (!f.d || !f.w || a === b) { alert('Lengkapi tanggal, waktu, dan pilih dua tim yang berbeda.'); return }
-    addMatch({ d: f.d, t: f.w, a, b, l: '1', x: 0, y: 0, s: 'Akan Datang' })
-    setF({ d: '', w: '', a: '', b: '' })
+    addMatch({ d: f.d, t: f.w, a, b, l: '1', x: 0, y: 0, s: 'Akan Datang', babak: f.babak })
+    setF({ d: '', w: '', a: '', b: '', babak: 'Grup' })
   }
   const edit = k => {
     const d = prompt('Tanggal (YYYY-MM-DD):', M[k].d)
@@ -191,14 +191,22 @@ function Pertandingan() {
       <div className="row">
         <div><label>Tanggal</label><input type="date" value={f.d} onChange={set('d')} /></div>
         <div><label>Waktu</label><input type="time" value={f.w} onChange={set('w')} /></div>
+        <div>
+          <label>Babak</label>
+          <select value={f.babak} onChange={set('babak')}>
+            {['Grup', 'QF1', 'QF2', 'QF3', 'QF4', 'SF1', 'SF2', 'Final', 'Juara 3'].map(x => (
+              <option key={x} value={x}>{x}</option>
+            ))}
+          </select>
+        </div>
         <div><label>Tim A</label><select value={a} onChange={set('a')}>{T.map(t => <option key={t.n}>{t.n}</option>)}</select></div>
         <div><label>Tim B</label><select value={b} onChange={set('b')}>{T.map(t => <option key={t.n}>{t.n}</option>)}</select></div>
         <div><label>Lapangan</label><select><option value="1">Lapangan 1</option></select></div>
         <button className="btn btn-primary" onClick={tambah}>Tambah</button>
       </div>
       <div className="mt-18">
-        <DataTable head={['Tanggal', 'Waktu', 'Pertandingan', 'Skor', 'Status', 'Aksi']}
-          rows={M.map((m, k) => [m.d, m.t, `${m.a} vs ${m.b} (Lap. 1)`,
+        <DataTable head={['Tanggal', 'Waktu', 'Babak', 'Pertandingan', 'Skor', 'Status', 'Aksi']}
+          rows={M.map((m, k) => [m.d, m.t, m.babak || 'Grup', `${m.a} vs ${m.b} (Lap. 1)`,
             <>
               <input className="input-skor" type="number" min="0" value={m.x} onChange={e => updateMatch(k, 'x', e.target.value)} />
               {' - '}
